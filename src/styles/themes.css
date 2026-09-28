@@ -1,0 +1,55 @@
+@layer base {
+  :root {
+    /* Paleta Base Personalizada */
+    --color-1: #CFF0EA; /* Mint / Aqua muy claro */
+    --color-2: #88C9C4; /* Aqua claro */
+    --color-3: #3E9B94; /* Teal / Turquesa medio */
+    --color-4: #20666B; /* Teal oscuro */
+    --color-5: #0C3B45; /* Deep Ocean / Azul petróleo */
+
+    /* Variables Semánticas: Modo Claro (Light Mode) */
+    --bg-primary: #FFFFFF;
+    --bg-secondary: var(--color-1);
+    --bg-tertiary: var(--color-2);
+    --bg-card: #FFFFFF;
+
+    --text-primary: var(--color-5);
+    --text-secondary: var(--color-4);
+    --text-muted: var(--color-3);
+    --text-inverse: #FFFFFF;
+
+    --brand-primary: var(--color-3);
+    --brand-hover: var(--color-4);
+    --brand-light: var(--color-1);
+
+    --border-color: rgba(32, 102, 107, 0.2);
+    --border-focus: var(--color-3);
+  }
+
+  /* Variables Semánticas: Modo Oscuro (Dark Mode) */
+  .dark {
+    --bg-primary: var(--color-5);
+    --bg-secondary: var(--color-4);
+    --bg-tertiary: #08282F;
+    --bg-card: rgba(32, 102, 107, 0.35);
+
+    --text-primary: #F0FAF8;
+    --text-secondary: var(--color-1);
+    --text-muted: var(--color-2);
+    --text-inverse: var(--color-5);
+
+    --brand-primary: var(--color-2);
+    --brand-hover: var(--color-1);
+    --brand-light: var(--color-4);
+
+    --border-color: rgba(136, 201, 196, 0.25);
+    --border-focus: var(--color-2);
+  }
+
+  /* Reset global y suavizado de transiciones de color */
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  }
+}
