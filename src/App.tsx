@@ -1,122 +1,88 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './styles/globals.css'
+import { useEffect, useState } from "react";
+import { MainLayout } from "./components/layouts/MainLayout";
+import { CartPage } from "./pages/CartPage";
+import { CheckoutPage } from "./pages/CheckoutPage";
+import { HomePage } from "./pages/HomePage";
+import { ProductDetails } from "./pages/ProductDetails";
+import { ProductsPage } from "./pages/ProductsPage";
+import { products } from "./data/products";
+import type { StoreRoute } from "./types/store";
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+function routeFromPath(pathname: string): StoreRoute {
+  if (pathname === "/products") return "products";
+  if (pathname.startsWith("/products/")) return "detail";
+  if (pathname === "/cart") return "cart";
+  if (pathname === "/checkout") return "checkout";
+  return "home";
 }
 
-export default App
+function currentLocation() {
+  return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+}
+
+function App() {
+  const [location, setLocation] = useState(currentLocation);
+  const route = routeFromPath(window.location.pathname);
+
+  useEffect(() => {
+    const syncLocation = () => setLocation(currentLocation());
+    window.addEventListener("popstate", syncLocation);
+    return () => window.removeEventListener("popstate", syncLocation);
+  }, []);
+
+  const navigate = (path: string) => {
+    window.history.pushState({}, "", path);
+    setLocation(currentLocation());
+    if (path.includes("#")) {
+      window.requestAnimationFrame(() =>
+        document
+          .querySelector(path.slice(path.indexOf("#")))
+          ?.scrollIntoView({ behavior: "smooth" }),
+      );
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const selectProduct = (id: string) => navigate(`/products/${id}`);
+  const productId = window.location.pathname.split("/").at(-1);
+  const selectedProduct = products.find((product) => product.id === productId);
+
+  let content: React.ReactNode;
+  if (route === "products")
+    content = <ProductsPage key={location} onSelectProduct={selectProduct} />;
+  else if (route === "detail")
+    content = selectedProduct ? (
+      <ProductDetails
+        key={selectedProduct.id}
+        product={selectedProduct}
+        onNavigate={navigate}
+      />
+    ) : (
+      <section className="empty-state page-width">
+        <h2>No encontramos esa pieza.</h2>
+        <button
+          className="button button-primary"
+          type="button"
+          onClick={() => navigate("/products")}
+        >
+          Volver a productos
+        </button>
+      </section>
+    );
+  else if (route === "cart") content = <CartPage onNavigate={navigate} />;
+  else if (route === "checkout")
+    content = <CheckoutPage onNavigate={navigate} />;
+  else
+    content = (
+      <HomePage onNavigate={navigate} onSelectProduct={selectProduct} />
+    );
+
+  return (
+    <MainLayout onNavigate={navigate} currentRoute={route}>
+      {content}
+    </MainLayout>
+  );
+}
+
+export default App;
